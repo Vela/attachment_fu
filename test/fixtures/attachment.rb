@@ -1,7 +1,7 @@
 class Attachment < ActiveRecord::Base
   @@saves = 0
   cattr_accessor :saves
-  has_attachment :processor => :rmagick
+  has_attachment :processor => :mini_magick
   validates_as_attachment
   after_save do |record|
     self.saves += 1
@@ -61,7 +61,7 @@ class ImageWithPolymorphicThumbsAttachment < Attachment
     :products   => { :large_thumb => '169x169!', :zoomed => '500x500>' },
     :editorials => { :fullsize => '150x100>' },
     'User'      => { :avatar => '64x64!' }
-  }, :processor => :rmagick
+  }, :processor => :mini_magick
 
   def create_or_update_thumbnail(path, thumb, *size)
     @@thumbnail_creations[thumb] = size.size == 1 ? size.first : size
@@ -73,14 +73,14 @@ class ImageWithPolymorphicThumbsAttachment < Attachment
 end
 
 class FileAttachment < ActiveRecord::Base
-  has_attachment :path_prefix => 'tmp/attachment_fu', :processor => :rmagick
+  has_attachment :path_prefix => 'tmp/attachment_fu', :processor => :mini_magick
   validates_as_attachment
 end
 
 class FileAttachmentWithStringId < ActiveRecord::Base
   self.table_name = 'file_attachments_with_string_ids'
   self.primary_key= :id
-  has_attachment :path_prefix => 'tmp/attachment_fu', :processor => :rmagick
+  has_attachment :path_prefix => 'tmp/attachment_fu', :processor => :mini_magick
   validates_as_attachment
 
   before_validation :auto_generate_id
@@ -95,7 +95,7 @@ class FileAttachmentWithStringId < ActiveRecord::Base
 end
 
 class FileAttachmentWithUuid < FileAttachmentWithStringId
-  has_attachment :path_prefix => 'tmp/attachment_fu', :processor => :rmagick, :uuid_primary_key => true
+  has_attachment :path_prefix => 'tmp/attachment_fu', :processor => :mini_magick, :uuid_primary_key => true
   validates_as_attachment
 
   before_validation :auto_generate_id
@@ -135,67 +135,18 @@ end
 
 # no parent
 class OrphanAttachment < ActiveRecord::Base
-  has_attachment :processor => :rmagick
+  has_attachment :processor => :mini_magick
   validates_as_attachment
 end
 
 # no filename, no size, no content_type
 class MinimalAttachment < ActiveRecord::Base
-  has_attachment :path_prefix => 'tmp/attachment_fu', :processor => :rmagick
+  has_attachment :path_prefix => 'tmp/attachment_fu', :processor => :mini_magick
   validates_as_attachment
 
   def filename
     "#{id}.file"
   end
-end
-
-begin
-  class ImageScienceAttachment < ActiveRecord::Base
-    has_attachment :path_prefix => 'tmp/attachment_fu',
-      :processor => :image_science, :thumbnails => { :thumb => [50, 51], :geometry => '31>', :aspect => '25x25!' }, :resize_to => 55
-  end
-
-  class ImageScienceLowerQualityAttachment < ActiveRecord::Base
-    self.table_name = 'image_science_attachments'
-    has_attachment :path_prefix => 'tmp/attachment_fu',
-      :processor => :image_science, :thumbnails => { :thumb => [50, 51], :geometry => '31>', :aspect => '25x25!' }, :resize_to => 55,
-      :jpeg_quality => 75
-  end
-
-  class ImageScienceWithPerThumbJpegAttachment < ImageScienceAttachment
-    has_attachment :path_prefix => 'tmp/attachment_fu',
-      :processor => :image_science,
-      :resize_to => '100x100',
-      :thumbnails => { :thumb => [50, 50], :editorial => '300x120', :avatar => '64x64!' },
-      :jpeg_quality => { :thumb => 90, '<5000' => 80, '>=5000' => 75 }
-  end
-rescue MissingSourceFile
-  puts $!.message
-  puts "no ImageScience"
-end
-
-begin
-  class CoreImageAttachment < ActiveRecord::Base
-    has_attachment :path_prefix => 'tmp/attachment_fu',
-      :processor => :core_image, :thumbnails => { :thumb => [50, 51], :geometry => '31>', :aspect => '25x25!' }, :resize_to => 55
-  end
-
-  class LowerQualityCoreImageAttachment < CoreImageAttachment
-    has_attachment :path_prefix => 'tmp/attachment_fu',
-      :processor => :core_image, :thumbnails => { :thumb => [50, 51], :geometry => '31>', :aspect => '25x25!' }, :resize_to => 55,
-      :jpeg_quality => 50
-  end
-
-  class CoreImageWithPerThumbJpegAttachment < CoreImageAttachment
-    has_attachment :path_prefix => 'tmp/attachment_fu',
-      :processor => :core_image,
-      :resize_to => '100x100',
-      :thumbnails => { :thumb => [50, 50], :editorial => '300x120', :avatar => '64x64!' },
-      :jpeg_quality => { :thumb => 90, '<5000' => 80, '>=5000' => 75 }
-  end
-rescue MissingSourceFile
-  puts $!.message
-  puts "no CoreImage"
 end
 
 begin
@@ -258,38 +209,13 @@ rescue MissingSourceFile
 end
 
 begin
-  class GD2Attachment < ActiveRecord::Base
-    has_attachment :path_prefix => 'tmp/attachment_fu',
-      :processor => :gd2, :thumbnails => { :thumb => [50, 51], :geometry => '31>', :aspect => '25x25!' }, :resize_to => 55
-  end
-
-  class LowerQualityGD2Attachment < GD2Attachment
-    has_attachment :path_prefix => 'tmp/attachment_fu',
-      :processor => :gd2, :thumbnails => { :thumb => [50, 51], :geometry => '31>', :aspect => '25x25!' }, :resize_to => 55,
-      :jpeg_quality => 50
-  end
-
-  class GD2WithPerThumbJpegAttachment < GD2Attachment
-    has_attachment :path_prefix => 'tmp/attachment_fu',
-      :processor => :gd2,
-      :resize_to => '100x100',
-      :thumbnails => { :thumb => [50, 50], :editorial => '300x120', :avatar => '64x64!' },
-      :jpeg_quality => { :thumb => 90, '<5000' => 80, '>=5000' => 75 }
-  end
-rescue MissingSourceFile
-  puts $!.message
-  puts "no GD2"
-end
-
-
-begin
   class S3Attachment < ActiveRecord::Base
-    has_attachment :storage => :s3, :processor => :rmagick, :s3_config_path => File.join(File.dirname(__FILE__), '../amazon_s3.yml')
+    has_attachment :storage => :s3, :processor => :mini_magick, :s3_config_path => File.join(File.dirname(__FILE__), '../amazon_s3.yml')
     validates_as_attachment
   end
 
   class S3WithPathPrefixAttachment < S3Attachment
-    has_attachment :storage => :s3, :path_prefix => 'some/custom/path/prefix', :processor => :rmagick
+    has_attachment :storage => :s3, :path_prefix => 'some/custom/path/prefix', :processor => :mini_magick
     validates_as_attachment
   end
 
@@ -299,12 +225,12 @@ end
 
 begin
   class CloudFilesAttachment < ActiveRecord::Base
-    has_attachment :storage => :cloud_files, :processor => :rmagick, :cloudfiles_config_path => File.join(File.dirname(__FILE__), '../rackspace_cloudfiles.yml')
+    has_attachment :storage => :cloud_files, :processor => :mini_magick, :cloudfiles_config_path => File.join(File.dirname(__FILE__), '../rackspace_cloudfiles.yml')
     validates_as_attachment
   end
 
   class CloudFilesWithPathPrefixAttachment < CloudFilesAttachment
-    has_attachment :storage => :cloud_files, :path_prefix => 'some/custom/path/prefix', :processor => :rmagick
+    has_attachment :storage => :cloud_files, :path_prefix => 'some/custom/path/prefix', :processor => :mini_magick
     validates_as_attachment
   end
 

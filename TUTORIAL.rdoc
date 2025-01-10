@@ -24,12 +24,6 @@ entire process, so let's get it out of the way early.
 
 Choose from one of the following libraries:
 
-[*ImageScience*]
-   A light inline-Ruby library that only resizes images. (Wraps the FreeImage library.)
-
-[*RMagick*]
-  The grand-daddy, both in terms of advanced image processing features and memory usage. (Wraps the ImageMagick library.)
-
 [*minimagick*]
   It's much easier on memory than RMagick because it runs the ImageMagick command in a shell.
 
@@ -180,7 +174,7 @@ the uploaded image. The options are as follows:
 
 [:storage] Sets where the actual image data is stored. Options include +:file_system+, +:db_system+, and +:s3+.
 
-[:processor] Sets what image processor to use. Options include ImageScience, Rmagick, and MiniMagick. By default, it will use whatever you have installed.
+[:processor] Sets what image processor to use. Use MiniMagick.
 
 [:path_prefix] Path to store the uploaded files, which defaults to public/#{table_name} by default for the filesystem. If you're using the S3 backend, it defaults to just #{table_name}.
 

@@ -3,15 +3,11 @@ require_relative "./attachment_fu/backends/db_file_backend.rb"
 require_relative "./attachment_fu/backends/file_system_backend.rb"
 require_relative "./attachment_fu/backends/s3_backend.rb"
 
-#require_relative "./attachment_fu/processors/core_image_processor.rb"
-#require_relative "./attachment_fu/processors/gd2_processor.rb"
-#require_relative "./attachment_fu/processors/image_science_processor.rb"
-#require_relative "./attachment_fu/processors/mini_magick_processor.rb"
-require_relative "./attachment_fu/processors/rmagick_processor.rb"
+require_relative "./attachment_fu/processors/mini_magick_processor.rb"
 
 module Technoweenie # :nodoc:
   module AttachmentFu # :nodoc:
-    @@default_processors = %w(ImageScience Rmagick MiniMagick Gd2 CoreImage)
+    @@default_processors = [MiniMagick]
     @@tempfile_path      = File.join(Rails.root.to_s, 'tmp', 'attachment_fu')
     @@content_types      = [
       'image/jpeg',
@@ -56,8 +52,6 @@ module Technoweenie # :nodoc:
       # *  <tt>:min_size</tt> - Minimum size allowed.  1 byte is the default.
       # *  <tt>:max_size</tt> - Maximum size allowed.  1.megabyte is the default.
       # *  <tt>:size</tt> - Range of sizes allowed.  (1..1.megabyte) is the default.  This overrides the :min_size and :max_size options.
-      # *  <tt>:resize_to</tt> - Used by RMagick to resize images.  Pass either an array of width/height, or a geometry string.  Prefix geometry string with 'c' to crop image, ex. 'c100x100'
-      # *  <tt>:sharpen_on_resize</tt> - When using RMagick, setting to true will sharpen images after resizing.
       # *  <tt>:jpeg_quality</tt> - Used to provide explicit JPEG quality for thumbnail/resize saves.  Can have multiple formats:
       #      * Integer from 0 (basically crap) to 100 (basically lossless, fat files).
       #      * When relying on ImageScience, you can also use one of its +JPEG_xxx+ constants for predefined ratios/settings.
@@ -65,9 +59,6 @@ module Technoweenie # :nodoc:
       #        A surface boundary is a string starting with either '<' or '>=', followed by a number of pixels.  This lets you
       #        specify per-thumbnail or per-general-thumbnail-"size" JPEG qualities. (which can be useful when you have a
       #        _lot_ of thumbnail options).  Surface example:  +{ '<2000' => 90, '>=2000' => 75 }+.
-      #      Defaults vary depending on the processor (ImageScience: 100%, Rmagick/MiniMagick/Gd2: 75%,
-      #      CoreImage: auto-adjust). Note that only tdd-image_science (available from GitHub) currently supports explicit JPEG quality;
-      #      the default image_science currently forces 100%.
       # *  <tt>:thumbnails</tt> - Specifies a set of thumbnails to generate.  This accepts a hash of filename suffixes and
       #      RMagick resizing options.  If you have a polymorphic parent relationship, you can provide parent-type-specific
       #      thumbnail settings by using a pair with the type string as key and a Hash of thumbnail definitions as value.

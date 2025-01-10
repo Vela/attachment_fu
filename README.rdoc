@@ -65,23 +65,11 @@ This method accepts the options in a hash:
     By default, set to +1..1.megabyte+. Overrides +:min_size+ and
     +:max_size+.
 
-[:resize_to]
-    Used by RMagick.
-
-    Tells RMagick how to resize images. Pass either an array specifying
-    width and height or a geometry string.  Prefixing the geometry string
-    with a 'c' will crop the image to the specified size.
-
-[:sharpen_on_resize]
-    Used by RMagick.
-
-    If set to true, images are sharpened after being resized.
-
 [:thumbnails]
     A set of thumbnails to generate.
 
-    This accepts a hash of filename suffixes and RMagick resizing options. This
-    option need only be included if you want thumbnailing.
+    This accepts a hash of filename suffixes. This option need only be included 
+    if you want thumbnailing.
 
     If you have a polymorphic parent relationship, you can provide
     parent-type-specific thumbnail settings by using a pair with the type string
@@ -138,8 +126,7 @@ This method accepts the options in a hash:
 
 [:processor]
     Sets the image processor to use for resizing of the attached image. Options
-    include ImageScience, Rmagick, MiniMagick, Gd2 and CoreImage. Default is
-    whatever is installed.
+    include MiniMagick. Default is whatever is installed.
 
 [:uuid_primary_key]
     If your model's primary key is a 128-bit UUID in hexadecimal format, then
