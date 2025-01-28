@@ -142,15 +142,16 @@ module Technoweenie # :nodoc:
 
         # The pseudo hierarchy containing the file relative to the container name
         # Example: <tt>:table_name/:id</tt>
+        # Edited to reflect vendored version of attachment_fu
         def base_path(thumbnail = nil)
-          file_system_path = (thumbnail ? thumbnail_class : self).attachment_options[:path_prefix]
-          File.join(file_system_path, attachment_path_id)
+          File.join(attachment_options[:path_prefix], attachment_path_id)
         end
 
         # The full path to the file relative to the container name
         # Example: <tt>:table_name/:id/:filename</tt>
+        # Edited to reflect vendored version of attachment_fu
         def full_filename(thumbnail = nil)
-          File.join(base_path(thumbnail), thumbnail_name_for(thumbnail))
+          File.join(base_path, thumbnail_name_for(thumbnail))
         end
 
         # All public objects are accessible via a GET request to the Cloud Files servers. You can generate a

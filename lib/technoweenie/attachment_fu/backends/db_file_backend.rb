@@ -29,13 +29,7 @@ module Technoweenie # :nodoc:
             if save_attachment?
               (db_file || build_db_file).data = temp_data
               db_file.save!
-              self.db_file_id = db_file.id
-
-              if self.class.respond_to?(:where)
-                self.class.where(:id => id).update_all(:db_file_id => db_file.id)
-              else
-                self.class.update_all({ :db_file_id => db_file.id }, { :id => id })
-              end
+              self.class.update_all ['db_file_id = ?', self.db_file_id = db_file.id], ['id = ?', id]
             end
             true
           end

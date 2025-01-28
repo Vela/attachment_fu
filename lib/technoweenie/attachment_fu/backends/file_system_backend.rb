@@ -20,12 +20,12 @@ module Technoweenie # :nodoc:
         # The optional thumbnail argument will output the thumbnail's filename.
         def full_filename(thumbnail = nil)
           file_system_path = (thumbnail ? thumbnail_class : self).attachment_options[:path_prefix].to_s
-          File.join(Rails.root.to_s, file_system_path, *partitioned_path(thumbnail_name_for(thumbnail)))
+          File.join(Rails.root, file_system_path, *partitioned_path(thumbnail_name_for(thumbnail)))
         end
 
         # Used as the base path that #public_filename strips off full_filename to create the public path
         def base_path
-          @base_path ||= File.join(Rails.root.to_s, 'public')
+          @base_path ||= File.join(Rails.root, 'public')
         end
 
         # The attachment ID used in the full path of a file
@@ -84,10 +84,13 @@ module Technoweenie # :nodoc:
 
         protected
           # Destroys the file.  Called in the after_destroy callback
+          # Edited to reflect vendored version of attachment_fu
           def destroy_file
-            FileUtils.rm full_filename
-            # remove directory also if it is now empty
-            Dir.rmdir(File.dirname(full_filename)) if (Dir.entries(File.dirname(full_filename))-['.','..']).empty?
+            if self.class.unscoped.find_by_id(self.id).blank?
+              FileUtils.rm_f(full_filename) if File.exist?(full_filename)
+              # remove directory also if it is now empty
+              Dir.rmdir(File.dirname(full_filename)) if (Dir.entries(File.dirname(full_filename))-['.','..']).empty?
+            end
           rescue
             logger.info "Exception destroying  #{full_filename.inspect}: [#{$!.class.name}] #{$1.to_s}"
             logger.warn $!.backtrace.collect { |b| " > #{b}" }.join("\n")
