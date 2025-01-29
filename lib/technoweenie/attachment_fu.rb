@@ -453,8 +453,19 @@ module Technoweenie # :nodoc:
             # get only the filename, not the whole path
             name.gsub! /^.*(\\|\/)/, ''
 
-            # Finally, replace all non alphanumeric, underscore or periods with underscore
-            name.gsub! /[^A-Za-z0-9\.\-]/, '_'
+            # Extracted code from:
+            # https://github.com/Vela/Cassie/blob/06993755813a33488b44544a5bc57e02b41abc24/vendor/gems/pothoven-attachment_fu-3.2.11/lib/technoweenie/attachment_fu.rb#L457
+            #
+            # WARNING: Danger, Will Robinson!  This is a modification to the source made
+            # by BIM 360 Field (Vela) as we do not want all characters stripped out.  We
+            # still change the spaces but will one day make that project selectable
+            #
+            # TODO: Eventually remove this as we will move away from attachment_fu entirely
+            # for Document objects and for Signature and Logo objects we will favor paperclip.
+            #
+            # Finally, replace all spaces with underscores
+            # to be refactored with CS-15752
+            name.gsub! /[\s]/, '_'
           end
         end
 
