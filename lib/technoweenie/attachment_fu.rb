@@ -19,6 +19,7 @@ module Technoweenie # :nodoc:
       'image/jpg',
       'image/x-ms-bmp',
       'image/bmp',
+      'image/tiff',
       'image/x-bmp',
       'image/x-bitmap',
       'image/x-xbitmap',
