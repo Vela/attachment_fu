@@ -14,7 +14,6 @@ module Technoweenie # :nodoc:
         module ClassMethods
           # Yields a block containing an MiniMagick Image for the given binary data.
           def with_image(file, &block)
-            debugger
             begin
               binary_data = nil
               if file.is_a?(MiniMagick::Image)
