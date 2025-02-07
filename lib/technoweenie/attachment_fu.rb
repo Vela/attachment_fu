@@ -19,6 +19,7 @@ module Technoweenie # :nodoc:
       'image/jpg',
       'image/x-ms-bmp',
       'image/bmp',
+      'image/tiff',
       'image/x-bmp',
       'image/x-bitmap',
       'image/x-xbitmap',
@@ -38,7 +39,8 @@ module Technoweenie # :nodoc:
       'application/png',
       'application/x-png',
       'image/gi_',
-      'image/x-citrix-pjpeg'
+      'image/x-citrix-pjpeg',
+      'application/pdf',
     ]
     mattr_reader :content_types, :tempfile_path, :default_processors
     mattr_writer :tempfile_path
@@ -471,7 +473,11 @@ module Technoweenie # :nodoc:
 
         # before_validation callback.
         def set_size_from_temp_path
-          self.size = File.size(temp_path) if save_attachment?
+          return unless save_attachment?
+
+          self.size = File.size(temp_path)
+          self.fcreate_date = File.ctime(temp_path) if self.fcreate_date.blank?
+          self.fmod_date = File.mtime(temp_path) if self.fmod_date.blank?
         end
 
         # validates the size and content_type attributes according to the current model's options
