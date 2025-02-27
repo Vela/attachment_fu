@@ -538,6 +538,11 @@ module Technoweenie # :nodoc:
               }
             end
             save_to_storage
+
+            @temp_paths.each do |f|
+              File.unlink(f.path) if f.is_a?(Tempfile) && File.exist?(f.path)
+            end
+
             @temp_paths.clear
             @saved_attachment = nil
             #callback :after_attachment_saved
