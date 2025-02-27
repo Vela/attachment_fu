@@ -22,7 +22,7 @@ module Technoweenie # :nodoc:
             end
             block.call binary_data if block && binary_data
           ensure
-            !binary_data.nil?
+            !binary_data.nil? && binary_data.destroy!
           end
         end
  
