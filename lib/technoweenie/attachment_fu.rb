@@ -371,6 +371,7 @@ module Technoweenie # :nodoc:
       def uploaded_data=(file_data)
         if file_data.respond_to?(:content_type)
           return nil if file_data.tempfile.length == 0
+
           self.size = file_data.tempfile.length
           self.content_type = file_data.content_type
           self.filename     = file_data.original_filename if respond_to?(:filename)
