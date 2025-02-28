@@ -2,7 +2,6 @@ require_relative "./attachment_fu/backends/cloud_file_backend.rb"
 require_relative "./attachment_fu/backends/db_file_backend.rb"
 require_relative "./attachment_fu/backends/file_system_backend.rb"
 require_relative "./attachment_fu/backends/s3_backend.rb"
-
 require_relative "./attachment_fu/processors/mini_magick_processor.rb"
 
 module Technoweenie # :nodoc:
