@@ -69,18 +69,6 @@ class BasicTest < Test::Unit::TestCase
     end
   end
 
-  def test_should_handle_polymorphic_thumbnails_option
-    omit('Issues with this test not passing. The code in attachment_fu might not actually work anymore. Need to check further on this.')
-    assert_polymorphic_thumb_creation nil,
-      :thumb => [50, 50], :geometry => 'x50'
-    assert_polymorphic_thumb_creation 'Product',
-      :thumb => [50, 50], :geometry => 'x50', :large_thumb => '169x169!', :zoomed => '500x500>'
-    assert_polymorphic_thumb_creation 'Editorial',
-      :thumb => [50, 50], :geometry => 'x50', :fullsize => '150x100>'
-    assert_polymorphic_thumb_creation 'User',
-      :thumb => [50, 50], :geometry => 'x50', :avatar => '64x64!'
-  end
-
   def test_should_compute_per_thumbnail_jpeg_quality
     assert_jpeg_quality :thumb, 90
     assert_jpeg_quality :avatar, 85

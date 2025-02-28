@@ -2,12 +2,11 @@ require_relative "./attachment_fu/backends/cloud_file_backend.rb"
 require_relative "./attachment_fu/backends/db_file_backend.rb"
 require_relative "./attachment_fu/backends/file_system_backend.rb"
 require_relative "./attachment_fu/backends/s3_backend.rb"
-
-require_relative "./attachment_fu/processors/rmagick_processor.rb"
+require_relative "./attachment_fu/processors/mini_magick_processor.rb"
 
 module Technoweenie # :nodoc:
   module AttachmentFu # :nodoc:
-    @@default_processors = %w(Rmagick)
+    @@default_processors = [MiniMagick]
     @@tempfile_path      = File.join(Rails.root.to_s, 'tmp', 'attachment_fu')
     @@content_types      = [
       'image/jpeg',
@@ -19,6 +18,7 @@ module Technoweenie # :nodoc:
       'image/jpg',
       'image/x-ms-bmp',
       'image/bmp',
+      'image/tiff',
       'image/x-bmp',
       'image/x-bitmap',
       'image/x-xbitmap',
@@ -38,7 +38,8 @@ module Technoweenie # :nodoc:
       'application/png',
       'application/x-png',
       'image/gi_',
-      'image/x-citrix-pjpeg'
+      'image/x-citrix-pjpeg',
+      'application/pdf',
     ]
     mattr_reader :content_types, :tempfile_path, :default_processors
     mattr_writer :tempfile_path
@@ -52,8 +53,6 @@ module Technoweenie # :nodoc:
       # *  <tt>:min_size</tt> - Minimum size allowed.  1 byte is the default.
       # *  <tt>:max_size</tt> - Maximum size allowed.  1.megabyte is the default.
       # *  <tt>:size</tt> - Range of sizes allowed.  (1..1.megabyte) is the default.  This overrides the :min_size and :max_size options.
-      # *  <tt>:resize_to</tt> - Used by RMagick to resize images.  Pass either an array of width/height, or a geometry string.  Prefix geometry string with 'c' to crop image, ex. 'c100x100'
-      # *  <tt>:sharpen_on_resize</tt> - When using RMagick, setting to true will sharpen images after resizing.
       # *  <tt>:jpeg_quality</tt> - Used to provide explicit JPEG quality for thumbnail/resize saves.  Can have multiple formats:
       #      * Integer from 0 (basically crap) to 100 (basically lossless, fat files).
       #      * When relying on ImageScience, you can also use one of its +JPEG_xxx+ constants for predefined ratios/settings.
@@ -61,9 +60,6 @@ module Technoweenie # :nodoc:
       #        A surface boundary is a string starting with either '<' or '>=', followed by a number of pixels.  This lets you
       #        specify per-thumbnail or per-general-thumbnail-"size" JPEG qualities. (which can be useful when you have a
       #        _lot_ of thumbnail options).  Surface example:  +{ '<2000' => 90, '>=2000' => 75 }+.
-      #      Defaults vary depending on the processor (ImageScience: 100%, Rmagick/MiniMagick/Gd2: 75%,
-      #      CoreImage: auto-adjust). Note that only tdd-image_science (available from GitHub) currently supports explicit JPEG quality;
-      #      the default image_science currently forces 100%.
       # *  <tt>:thumbnails</tt> - Specifies a set of thumbnails to generate.  This accepts a hash of filename suffixes and
       #      RMagick resizing options.  If you have a polymorphic parent relationship, you can provide parent-type-specific
       #      thumbnail settings by using a pair with the type string as key and a Hash of thumbnail definitions as value.
@@ -458,14 +454,29 @@ module Technoweenie # :nodoc:
             # get only the filename, not the whole path
             name.gsub! /^.*(\\|\/)/, ''
 
-            # Finally, replace all non alphanumeric, underscore or periods with underscore
-            name.gsub! /[^A-Za-z0-9\.\-]/, '_'
+            # Extracted code from:
+            # https://github.com/Vela/Cassie/blob/06993755813a33488b44544a5bc57e02b41abc24/vendor/gems/pothoven-attachment_fu-3.2.11/lib/technoweenie/attachment_fu.rb#L457
+            #
+            # WARNING: Danger, Will Robinson!  This is a modification to the source made
+            # by BIM 360 Field (Vela) as we do not want all characters stripped out.  We
+            # still change the spaces but will one day make that project selectable
+            #
+            # TODO: Eventually remove this as we will move away from attachment_fu entirely
+            # for Document objects and for Signature and Logo objects we will favor paperclip.
+            #
+            # Finally, replace all spaces with underscores
+            # to be refactored with CS-15752
+            name.gsub! /[\s]/, '_'
           end
         end
 
         # before_validation callback.
         def set_size_from_temp_path
-          self.size = File.size(temp_path) if save_attachment?
+          return unless save_attachment?
+
+          self.size = File.size(temp_path)
+          self.fcreate_date = File.ctime(temp_path) if self.fcreate_date.blank?
+          self.fmod_date = File.mtime(temp_path) if self.fmod_date.blank?
         end
 
         # validates the size and content_type attributes according to the current model's options
